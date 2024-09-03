@@ -83,7 +83,7 @@ const Snake = () => {
         </Button>
       </Link>
       <h1 className="text-4xl font-bold text-white mb-8">Snake Game</h1>
-      <div className="border-4 border-white" style={{ width: GRID_SIZE * CELL_SIZE, height: GRID_SIZE * CELL_SIZE }}>
+      <div className="relative border-4 border-white" style={{ width: GRID_SIZE * CELL_SIZE, height: GRID_SIZE * CELL_SIZE }}>
         {snake.map((segment, index) => (
           <div
             key={index}

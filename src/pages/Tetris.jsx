@@ -146,7 +146,7 @@ const Tetris = () => {
         </Button>
       </Link>
       <h1 className="text-4xl font-bold text-white mb-8">Tetris</h1>
-      <div className="border-4 border-white" style={{ width: BOARD_WIDTH * BLOCK_SIZE, height: BOARD_HEIGHT * BLOCK_SIZE }}>
+      <div className="relative border-4 border-white" style={{ width: BOARD_WIDTH * BLOCK_SIZE, height: BOARD_HEIGHT * BLOCK_SIZE }}>
         {board.map((row, y) => (
           row.map((cell, x) => (
             <div
