@@ -173,8 +173,9 @@ const Tetris = () => {
     });
     setBoard(newBoard);
     clearLines(newBoard);
-    setCurrentPiece(generateNewPiece());
-    if (!isValidMove(currentPiece.x, currentPiece.y, currentPiece.shape)) {
+    const newPiece = generateNewPiece();
+    setCurrentPiece(newPiece);
+    if (!isValidMove(newPiece.x, newPiece.y, newPiece.shape)) {
       setGameOver(true);
     }
   };
