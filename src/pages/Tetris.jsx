@@ -235,9 +235,9 @@ const Tetris = () => {
   );
 
   const renderNextPiece = () => (
-    <div className="absolute right-4 top-4 bg-white p-2 rounded">
+    <div className={`absolute right-4 top-4 bg-white p-2 rounded ${window.innerWidth <= 768 ? 'sm:right-14' : ''}`}>
       <div className="text-sm font-bold mb-1">Next:</div>
-      <div className="relative" style={{ width: 60, height: 60 }}>
+      <div className="relative" style={{ width: 80, height: 80 }}>
         {nextPiece && nextPiece.shape.map((row, y) =>
           row.map((cell, x) =>
             cell ? (
@@ -245,10 +245,10 @@ const Tetris = () => {
                 key={`next-${y}-${x}`}
                 className="absolute"
                 style={{
-                  left: x * 15,
-                  top: y * 15,
-                  width: 15,
-                  height: 15,
+                  left: x * 20,
+                  top: y * 20,
+                  width: 20,
+                  height: 20,
                   backgroundColor: nextPiece.color,
                   border: '1px solid rgba(0, 0, 0, 0.3)',
                 }}
