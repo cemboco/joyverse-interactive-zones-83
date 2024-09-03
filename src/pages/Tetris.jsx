@@ -3,49 +3,29 @@ import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
 
-// Constants and helper functions
-const BOARD_WIDTH = 10;
-const BOARD_HEIGHT = 20;
+const GRID_SIZE = 20;
+const CELL_SIZE = 20;
 const BORDER_THICKNESS = 10;
-
-const TETROMINOS = {
-  I: { shape: [[1, 1, 1, 1]], color: 'cyan' },
-  J: { shape: [[1, 0, 0], [1, 1, 1]], color: 'blue' },
-  L: { shape: [[0, 0, 1], [1, 1, 1]], color: 'orange' },
-  O: { shape: [[1, 1], [1, 1]], color: 'yellow' },
-  S: { shape: [[0, 1, 1], [1, 1, 0]], color: 'green' },
-  T: { shape: [[0, 1, 0], [1, 1, 1]], color: 'purple' },
-  Z: { shape: [[1, 1, 0], [0, 1, 1]], color: 'red' },
-};
-
-const getRandomTetromino = () => {
-  const tetrominos = 'IJLOSTZ';
-  const randTetromino = tetrominos[Math.floor(Math.random() * tetrominos.length)];
-  return TETROMINOS[randTetromino];
-};
+const INITIAL_SNAKE = [{ x: 10, y: 10 }];
+const INITIAL_FOOD = { x: 15, y: 15 };
+const INITIAL_DIRECTION = 'RIGHT';
 
 const Tetris = () => {
-  const [board, setBoard] = useState(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
-  const [currentPiece, setCurrentPiece] = useState(null);
-  const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
+  const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(() => {
     const saved = localStorage.getItem('tetrisHighScore');
     return saved ? parseInt(saved, 10) : 0;
   });
   const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
-  const gameLoopRef = useRef(null);
+  const canvasRef = useRef(null);
+  const requestRef = useRef(null);
 
   useEffect(() => {
     const updateBoardSize = () => {
-      const maxWidth = Math.min(window.innerWidth - 40, 400);
-      const maxHeight = window.innerHeight - 200;
-      const cellSize = Math.floor(Math.min(maxWidth / BOARD_WIDTH, maxHeight / BOARD_HEIGHT));
-      setBoardSize({
-        width: cellSize * BOARD_WIDTH,
-        height: cellSize * BOARD_HEIGHT
-      });
+      const smallestDimension = Math.min(window.innerWidth, window.innerHeight) - 40;
+      const newSize = Math.floor(smallestDimension / GRID_SIZE) * GRID_SIZE;
+      setBoardSize({ width: newSize, height: newSize * 2 });
     };
 
     updateBoardSize();
@@ -53,164 +33,219 @@ const Tetris = () => {
     return () => window.removeEventListener('resize', updateBoardSize);
   }, []);
 
-  const isValidMove = useCallback((piece, boardRow, boardCol) => {
-    for (let row = 0; row < piece.shape.length; row++) {
-      for (let col = 0; col < piece.shape[row].length; col++) {
-        if (piece.shape[row][col]) {
-          const newRow = boardRow + row;
-          const newCol = boardCol + col;
-          if (
-            newRow < 0 ||
-            newRow >= BOARD_HEIGHT ||
-            newCol < 0 ||
-            newCol >= BOARD_WIDTH ||
-            board[newRow][newCol]
-          ) {
-            return false;
-          }
+  const getRandomInt = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
+  const tetrominoSequence = useRef([]);
+  const generateSequence = () => {
+    const sequence = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+    while (sequence.length) {
+      const rand = getRandomInt(0, sequence.length - 1);
+      const name = sequence.splice(rand, 1)[0];
+      tetrominoSequence.current.push(name);
+    }
+  };
+
+  const tetrominos = {
+    'I': [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    'J': [[1,0,0],[1,1,1],[0,0,0]],
+    'L': [[0,0,1],[1,1,1],[0,0,0]],
+    'O': [[1,1],[1,1]],
+    'S': [[0,1,1],[1,1,0],[0,0,0]],
+    'Z': [[1,1,0],[0,1,1],[0,0,0]],
+    'T': [[0,1,0],[1,1,1],[0,0,0]]
+  };
+
+  const colors = {
+    'I': 'cyan',
+    'O': 'yellow',
+    'T': 'purple',
+    'S': 'green',
+    'Z': 'red',
+    'J': 'blue',
+    'L': 'orange'
+  };
+
+  const playfield = useRef([]);
+  for (let row = -2; row < 20; row++) {
+    playfield.current[row] = [];
+    for (let col = 0; col < 10; col++) {
+      playfield.current[row][col] = 0;
+    }
+  }
+
+  const tetromino = useRef(null);
+  const count = useRef(0);
+
+  const getNextTetromino = () => {
+    if (tetrominoSequence.current.length === 0) {
+      generateSequence();
+    }
+    const name = tetrominoSequence.current.pop();
+    const matrix = tetrominos[name];
+    const col = playfield.current[0].length / 2 - Math.ceil(matrix[0].length / 2);
+    const row = name === 'I' ? -1 : -2;
+    return { name, matrix, row, col };
+  };
+
+  const rotate = (matrix) => {
+    const N = matrix.length - 1;
+    const result = matrix.map((row, i) => row.map((val, j) => matrix[N - j][i]));
+    return result;
+  };
+
+  const isValidMove = (matrix, cellRow, cellCol) => {
+    for (let row = 0; row < matrix.length; row++) {
+      for (let col = 0; col < matrix[row].length; col++) {
+        if (matrix[row][col] && (
+          cellCol + col < 0 ||
+          cellCol + col >= playfield.current[0].length ||
+          cellRow + row >= playfield.current.length ||
+          playfield.current[cellRow + row][cellCol + col])
+        ) {
+          return false;
         }
       }
     }
     return true;
-  }, [board]);
+  };
 
-  const rotatePiece = useCallback((piece) => {
-    const newShape = piece.shape[0].map((_, index) =>
-      piece.shape.map(row => row[index]).reverse()
-    );
-    return { ...piece, shape: newShape };
-  }, []);
+  const placeTetromino = () => {
+    for (let row = 0; row < tetromino.current.matrix.length; row++) {
+      for (let col = 0; col < tetromino.current.matrix[row].length; col++) {
+        if (tetromino.current.matrix[row][col]) {
+          if (tetromino.current.row + row < 0) {
+            return setGameOver(true);
+          }
+          playfield.current[tetromino.current.row + row][tetromino.current.col + col] = tetromino.current.name;
+        }
+      }
+    }
 
-  const placePiece = useCallback(() => {
-    const newBoard = board.map(row => [...row]);
-    currentPiece.shape.forEach((row, y) => {
-      row.forEach((cell, x) => {
-        if (cell) {
-          const boardY = currentPiece.y + y;
-          const boardX = currentPiece.x + x;
-          if (boardY >= 0 && boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
-            newBoard[boardY][boardX] = currentPiece.color;
+    for (let row = playfield.current.length - 1; row >= 0; ) {
+      if (playfield.current[row].every(cell => !!cell)) {
+        for (let r = row; r >= 0; r--) {
+          for (let c = 0; c < playfield.current[r].length; c++) {
+            playfield.current[r][c] = playfield.current[r-1][c];
           }
         }
-      });
-    });
-
-    let linesCleared = 0;
-    for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
-      if (newBoard[y].every(cell => cell !== null)) {
-        newBoard.splice(y, 1);
-        newBoard.unshift(Array(BOARD_WIDTH).fill(null));
-        linesCleared++;
-        y++;
+        setScore(prevScore => prevScore + 10);
+      }
+      else {
+        row--;
       }
     }
 
-    setBoard(newBoard);
-    setScore(prevScore => prevScore + linesCleared * 100);
-    const newPiece = {
-      ...getRandomTetromino(),
-      x: Math.floor(BOARD_WIDTH / 2) - 1,
-      y: 0
-    };
-    setCurrentPiece(newPiece);
+    tetromino.current = getNextTetromino();
+  };
 
-    if (!isValidMove(newPiece, newPiece.y, newPiece.x)) {
-      setGameOver(true);
+  const loop = useCallback(() => {
+    const context = canvasRef.current.getContext('2d');
+    context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    for (let row = 0; row < 20; row++) {
+      for (let col = 0; col < 10; col++) {
+        if (playfield.current[row][col]) {
+          const name = playfield.current[row][col];
+          context.fillStyle = colors[name];
+          context.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1);
+        }
+      }
     }
-  }, [board, currentPiece, isValidMove]);
 
-  const movePiece = useCallback((dx, dy) => {
-    if (!currentPiece) return;
-    const newX = currentPiece.x + dx;
-    const newY = currentPiece.y + dy;
-    if (isValidMove(currentPiece, newY, newX)) {
-      setCurrentPiece(prevPiece => ({ ...prevPiece, x: newX, y: newY }));
-    } else if (dy > 0) {
-      placePiece();
-    }
-  }, [currentPiece, isValidMove, placePiece]);
+    if (tetromino.current) {
+      if (++count.current > 60) {  // Changed from 35 to 60 to slow down the game
+        tetromino.current.row++;
+        count.current = 0;
 
-  const hardDrop = useCallback(() => {
-    if (!currentPiece) return;
-    let newY = currentPiece.y;
-    while (isValidMove(currentPiece, newY + 1, currentPiece.x)) {
-      newY++;
-    }
-    setCurrentPiece(prevPiece => ({ ...prevPiece, y: newY }));
-    placePiece();
-  }, [currentPiece, isValidMove, placePiece]);
+        if (!isValidMove(tetromino.current.matrix, tetromino.current.row, tetromino.current.col)) {
+          tetromino.current.row--;
+          placeTetromino();
+        }
+      }
 
-  const handleKeyDown = useCallback((e) => {
-    if (gameStarted && !gameOver) {
-      switch (e.key) {
-        case 'ArrowLeft':
-          movePiece(-1, 0);
-          break;
-        case 'ArrowRight':
-          movePiece(1, 0);
-          break;
-        case 'ArrowDown':
-          movePiece(0, 1);
-          break;
-        case 'ArrowUp':
-          const rotated = rotatePiece(currentPiece);
-          if (isValidMove(rotated, currentPiece.y, currentPiece.x)) {
-            setCurrentPiece(rotated);
+      context.fillStyle = colors[tetromino.current.name];
+
+      for (let row = 0; row < tetromino.current.matrix.length; row++) {
+        for (let col = 0; col < tetromino.current.matrix[row].length; col++) {
+          if (tetromino.current.matrix[row][col]) {
+            context.fillRect((tetromino.current.col + col) * CELL_SIZE, (tetromino.current.row + row) * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1);
           }
-          break;
-        case ' ':
-          hardDrop();
-          break;
+        }
       }
     }
-  }, [gameStarted, gameOver, movePiece, rotatePiece, currentPiece, isValidMove, hardDrop]);
+
+    requestRef.current = requestAnimationFrame(loop);
+  }, []);
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
-  const startGame = useCallback(() => {
-    if (!gameStarted && !gameOver) {
-      setGameStarted(true);
-      setBoard(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
-      setCurrentPiece({
-        ...getRandomTetromino(),
-        x: Math.floor(BOARD_WIDTH / 2) - 1,
-        y: 0
-      });
-      setScore(0);
-      setGameOver(false);
-    }
-  }, [gameStarted, gameOver]);
+    tetromino.current = getNextTetromino();
+    requestRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [loop]);
 
   useEffect(() => {
-    if (gameStarted && !gameOver) {
-      const gameLoop = () => {
-        movePiece(0, 1);
-        gameLoopRef.current = requestAnimationFrame(gameLoop);
-      };
-      gameLoopRef.current = requestAnimationFrame(gameLoop);
-    } else if (gameOver) {
-      cancelAnimationFrame(gameLoopRef.current);
-    }
-    return () => cancelAnimationFrame(gameLoopRef.current);
-  }, [gameStarted, gameOver, movePiece]);
+    const handleKeyDown = (e) => {
+      if (gameOver) return;
+
+      if (e.keyCode === 37 || e.keyCode === 39) {
+        const col = e.keyCode === 37
+          ? tetromino.current.col - 1
+          : tetromino.current.col + 1;
+
+        if (isValidMove(tetromino.current.matrix, tetromino.current.row, col)) {
+          tetromino.current.col = col;
+        }
+      }
+
+      if (e.keyCode === 38) {
+        const matrix = rotate(tetromino.current.matrix);
+        if (isValidMove(matrix, tetromino.current.row, tetromino.current.col)) {
+          tetromino.current.matrix = matrix;
+        }
+      }
+
+      if(e.keyCode === 40) {
+        const row = tetromino.current.row + 1;
+
+        if (!isValidMove(tetromino.current.matrix, row, tetromino.current.col)) {
+          tetromino.current.row = row - 1;
+          placeTetromino();
+          return;
+        }
+
+        tetromino.current.row = row;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [gameOver]);
 
   useEffect(() => {
-    if (score > highScore) {
+    if (gameOver && score > highScore) {
       setHighScore(score);
       localStorage.setItem('tetrisHighScore', score.toString());
     }
-  }, [score, highScore]);
+  }, [gameOver, score, highScore]);
 
   const resetGame = useCallback(() => {
-    setBoard(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
-    setCurrentPiece(null);
-    setScore(0);
+    for (let row = -2; row < 20; row++) {
+      for (let col = 0; col < 10; col++) {
+        playfield.current[row][col] = 0;
+      }
+    }
+    count.current = 0;
+    tetromino.current = getNextTetromino();
     setGameOver(false);
-    setGameStarted(false);
-  }, []);
+    setScore(0);
+    requestRef.current = requestAnimationFrame(loop);
+  }, [loop]);
 
   const shareOnTwitter = () => {
     const text = `I just scored ${score} in Tetris! Try to beat me! #TetrisChallenge`;
@@ -225,21 +260,6 @@ const Tetris = () => {
     });
   };
 
-  const renderCell = (cell, x, y) => (
-    <div
-      key={`${y}-${x}`}
-      className="absolute"
-      style={{
-        left: (x * boardSize.width) / BOARD_WIDTH,
-        top: (y * boardSize.height) / BOARD_HEIGHT,
-        width: boardSize.width / BOARD_WIDTH,
-        height: boardSize.height / BOARD_HEIGHT,
-        backgroundColor: cell || 'transparent',
-        border: '1px solid rgba(0, 0, 0, 0.1)',
-      }}
-    />
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-400 to-purple-500 flex flex-col items-center justify-center p-4">
       <Link to="/" className="absolute top-4 left-4">
@@ -248,11 +268,6 @@ const Tetris = () => {
         </Button>
       </Link>
       <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Tetris</h1>
-      {!gameStarted && !gameOver && (
-        <Button onClick={startGame} className="mb-4 px-6 py-2 text-lg">
-          Start Game
-        </Button>
-      )}
       <div 
         className="relative bg-black" 
         style={{ 
@@ -261,14 +276,12 @@ const Tetris = () => {
           padding: BORDER_THICKNESS
         }}
       >
-        <div className="relative bg-white" style={{ width: boardSize.width, height: boardSize.height }}>
-          {board.map((row, y) => row.map((cell, x) => renderCell(cell, x, y)))}
-          {currentPiece && currentPiece.shape.map((row, y) =>
-            row.map((cell, x) =>
-              cell ? renderCell(currentPiece.color, currentPiece.x + x, currentPiece.y + y) : null
-            )
-          )}
-        </div>
+        <canvas
+          ref={canvasRef}
+          width={boardSize.width}
+          height={boardSize.height}
+          className="bg-white"
+        />
       </div>
       <div className="mt-4 text-white text-xl">Score: {score}</div>
       <div className="mt-2 text-white text-lg">High Score: {highScore}</div>
