@@ -168,7 +168,7 @@ const Breakout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-green-400 to-blue-500 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-r from-green-400 to-white-500 flex flex-col items-center justify-center">
       <Link to="/" className="absolute top-4 left-4">
         <Button variant="outline" size="icon">
           <HomeIcon className="h-4 w-4" />
