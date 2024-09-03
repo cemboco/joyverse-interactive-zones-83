@@ -14,6 +14,7 @@ const Snake = () => {
   const [food, setFood] = useState(INITIAL_FOOD);
   const [direction, setDirection] = useState(INITIAL_DIRECTION);
   const [gameOver, setGameOver] = useState(false);
+  const [score, setScore] = useState(0);
 
   const moveSnake = useCallback(() => {
     if (gameOver) return;
@@ -22,13 +23,14 @@ const Snake = () => {
     const head = { ...newSnake[0] };
 
     switch (direction) {
-      case 'UP': head.y -= 1; break;
-      case 'DOWN': head.y += 1; break;
-      case 'LEFT': head.x -= 1; break;
-      case 'RIGHT': head.x += 1; break;
+      case 'UP': head.y = (head.y - 1 + GRID_SIZE) % GRID_SIZE; break;
+      case 'DOWN': head.y = (head.y + 1) % GRID_SIZE; break;
+      case 'LEFT': head.x = (head.x - 1 + GRID_SIZE) % GRID_SIZE; break;
+      case 'RIGHT': head.x = (head.x + 1) % GRID_SIZE; break;
     }
 
-    if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+    // Check if snake hits itself
+    if (newSnake.some(segment => segment.x === head.x && segment.y === head.y)) {
       setGameOver(true);
       return;
     }
@@ -40,6 +42,7 @@ const Snake = () => {
         x: Math.floor(Math.random() * GRID_SIZE),
         y: Math.floor(Math.random() * GRID_SIZE),
       });
+      setScore(prevScore => prevScore + 1);
     } else {
       newSnake.pop();
     }
@@ -51,12 +54,16 @@ const Snake = () => {
     if (gameOver) return;
 
     const handleKeyPress = (e) => {
-      switch (e.key) {
-        case 'ArrowUp': setDirection('UP'); break;
-        case 'ArrowDown': setDirection('DOWN'); break;
-        case 'ArrowLeft': setDirection('LEFT'); break;
-        case 'ArrowRight': setDirection('RIGHT'); break;
-      }
+      const newDirection = (() => {
+        switch (e.key) {
+          case 'ArrowUp': return direction !== 'DOWN' ? 'UP' : direction;
+          case 'ArrowDown': return direction !== 'UP' ? 'DOWN' : direction;
+          case 'ArrowLeft': return direction !== 'RIGHT' ? 'LEFT' : direction;
+          case 'ArrowRight': return direction !== 'LEFT' ? 'RIGHT' : direction;
+          default: return direction;
+        }
+      })();
+      setDirection(newDirection);
     };
 
     document.addEventListener('keydown', handleKeyPress);
@@ -66,13 +73,14 @@ const Snake = () => {
       document.removeEventListener('keydown', handleKeyPress);
       clearInterval(gameInterval);
     };
-  }, [gameOver, moveSnake]);
+  }, [gameOver, moveSnake, direction]);
 
   const resetGame = () => {
     setSnake(INITIAL_SNAKE);
     setFood(INITIAL_FOOD);
     setDirection(INITIAL_DIRECTION);
     setGameOver(false);
+    setScore(0);
   };
 
   return (
@@ -106,6 +114,7 @@ const Snake = () => {
           }}
         />
       </div>
+      <div className="mt-4 text-white text-2xl">Score: {score}</div>
       {gameOver && (
         <div className="mt-4 text-white text-2xl">Game Over!</div>
       )}
