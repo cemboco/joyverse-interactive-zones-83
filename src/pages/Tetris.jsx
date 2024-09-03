@@ -7,11 +7,15 @@ const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 const BORDER_THICKNESS = 10;
 
-// ... (keep all the existing constants and game logic)
-
 const Tetris = () => {
-  // ... (keep all the existing state variables)
-
+  const [board, setBoard] = useState(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
+  const [currentPiece, setCurrentPiece] = useState(null);
+  const [score, setScore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [highScore, setHighScore] = useState(() => {
+    const saved = localStorage.getItem('tetrisHighScore');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
@@ -30,7 +34,25 @@ const Tetris = () => {
     return () => window.removeEventListener('resize', updateBoardSize);
   }, []);
 
-  // ... (keep all the existing game logic)
+  const resetGame = useCallback(() => {
+    setBoard(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
+    setCurrentPiece(null);
+    setScore(0);
+    setGameOver(false);
+  }, []);
+
+  const shareOnTwitter = () => {
+    const text = `I just scored ${score} in Tetris! Try to beat me! #TetrisChallenge`;
+    const url = 'https://your-game-url.com'; // Replace with your actual game URL
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  };
+
+  const shareOnInstagram = () => {
+    const text = `I just scored ${score} in Tetris! Try to beat me! #TetrisChallenge\n\nPlay at: https://your-game-url.com`;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Challenge text copied! You can now paste it into your Instagram story.');
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-400 to-purple-500 flex flex-col items-center justify-center p-4">
