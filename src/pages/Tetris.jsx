@@ -25,17 +25,24 @@ const Tetris = () => {
   const [board, setBoard] = useState(createEmptyBoard());
   const [currentPiece, setCurrentPiece] = useState(null);
   const [gameOver, setGameOver] = useState(false);
+  const [score, setScore] = useState(0);
 
   const spawnNewPiece = useCallback(() => {
     const tetrominos = Object.keys(TETROMINOS);
     const randomTetromino = tetrominos[Math.floor(Math.random() * tetrominos.length)];
     const piece = TETROMINOS[randomTetromino];
-    setCurrentPiece({
+    const newPiece = {
       shape: piece.shape,
       color: piece.color,
       x: Math.floor(BOARD_WIDTH / 2) - Math.floor(piece.shape[0].length / 2),
       y: 0,
-    });
+    };
+    
+    if (!isValidMove(newPiece.shape, newPiece.x, newPiece.y)) {
+      setGameOver(true);
+    } else {
+      setCurrentPiece(newPiece);
+    }
   }, []);
 
   const moveDown = useCallback(() => {
@@ -45,7 +52,8 @@ const Tetris = () => {
       setCurrentPiece({ ...currentPiece, y: newY });
     } else {
       placePiece();
-      clearLines();
+      const clearedLines = clearLines();
+      setScore(prevScore => prevScore + clearedLines * 100);
       spawnNewPiece();
     }
   }, [currentPiece, spawnNewPiece]);
@@ -90,11 +98,9 @@ const Tetris = () => {
         if (value) {
           const boardY = currentPiece.y + y;
           const boardX = currentPiece.x + x;
-          if (boardY < 0) {
-            setGameOver(true);
-            return;
+          if (boardY >= 0 && boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
+            newBoard[boardY][boardX] = currentPiece.color;
           }
-          newBoard[boardY][boardX] = currentPiece.color;
         }
       });
     });
@@ -102,10 +108,17 @@ const Tetris = () => {
   };
 
   const clearLines = () => {
-    const newBoard = board.filter(row => row.some(cell => cell === 0));
-    const clearedLines = BOARD_HEIGHT - newBoard.length;
-    const newRows = Array.from({ length: clearedLines }, () => Array(BOARD_WIDTH).fill(0));
+    let linesCleared = 0;
+    const newBoard = board.filter(row => {
+      if (row.every(cell => cell !== 0)) {
+        linesCleared++;
+        return false;
+      }
+      return true;
+    });
+    const newRows = Array.from({ length: linesCleared }, () => Array(BOARD_WIDTH).fill(0));
     setBoard([...newRows, ...newBoard]);
+    return linesCleared;
   };
 
   useEffect(() => {
@@ -135,6 +148,7 @@ const Tetris = () => {
     setBoard(createEmptyBoard());
     setCurrentPiece(null);
     setGameOver(false);
+    setScore(0);
     spawnNewPiece();
   };
 
@@ -182,6 +196,7 @@ const Tetris = () => {
           ))
         ))}
       </div>
+      <div className="mt-4 text-white text-2xl">Score: {score}</div>
       {gameOver && (
         <div className="mt-4 text-white text-2xl">Game Over!</div>
       )}

@@ -50,24 +50,6 @@ const Snake = () => {
     setSnake(newSnake);
   }, [snake, direction, food, gameOver]);
 
-  const moveHorizontally = (direction) => {
-    if (!currentPiece) return;
-    const newX = currentPiece.x + direction;
-    if (isValidMove(currentPiece.shape, newX, currentPiece.y)) {
-      setCurrentPiece({ ...currentPiece, x: newX });
-    }
-  };
-
-  const rotate = () => {
-    if (!currentPiece) return;
-    const rotatedShape = currentPiece.shape[0].map((_, index) =>
-      currentPiece.shape.map(row => row[index]).reverse()
-    );
-    if (isValidMove(rotatedShape, currentPiece.x, currentPiece.y)) {
-      setCurrentPiece({ ...currentPiece, shape: rotatedShape });
-    }
-  };
-
   const changeDirection = useCallback((newDirection) => {
     setDirection(prevDirection => {
       const opposites = {
