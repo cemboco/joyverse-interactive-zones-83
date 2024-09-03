@@ -42,6 +42,12 @@ const MemoryGame = () => {
     }
   };
 
+  const handleKeyPress = (e, id) => {
+    if (e.key === 'l') {
+      handleCardClick(id);
+    }
+  };
+
   const checkForMatch = (flippedCards) => {
     const [first, second] = flippedCards;
     if (cards[first].symbol === cards[second].symbol) {
@@ -101,7 +107,8 @@ const MemoryGame = () => {
                 ? 'bg-white'
                 : 'bg-gray-300'
             }`}
-            onClick={() => handleCardClick(card.id)}
+            tabIndex={0}
+            onKeyDown={(e) => handleKeyPress(e, card.id)}
           >
             {flipped.includes(card.id) || solved.includes(card.symbol) ? card.symbol : '?'}
           </Card>
