@@ -145,6 +145,7 @@ const Tetris = () => {
     if (gameOver) return;
 
     const handleKeyPress = (e) => {
+      e.preventDefault();
       switch (e.key) {
         case 'ArrowLeft': moveHorizontally(-1); break;
         case 'ArrowRight': moveHorizontally(1); break;

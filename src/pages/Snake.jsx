@@ -82,6 +82,7 @@ const Snake = () => {
     if (gameOver) return;
 
     const handleKeyPress = (e) => {
+      e.preventDefault();
       switch (e.key) {
         case 'ArrowUp': changeDirection('UP'); break;
         case 'ArrowDown': changeDirection('DOWN'); break;
