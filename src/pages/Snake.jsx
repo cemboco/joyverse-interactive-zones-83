@@ -23,16 +23,10 @@ const Snake = () => {
     const head = { ...newSnake[0] };
 
     switch (direction) {
-      case 'UP': head.y = head.y - 1; break;
-      case 'DOWN': head.y = head.y + 1; break;
-      case 'LEFT': head.x = head.x - 1; break;
-      case 'RIGHT': head.x = head.x + 1; break;
-    }
-
-    // Check if snake hits the border
-    if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
-      setGameOver(true);
-      return;
+      case 'UP': head.y = Math.max(0, head.y - 1); break;
+      case 'DOWN': head.y = Math.min(GRID_SIZE - 1, head.y + 1); break;
+      case 'LEFT': head.x = Math.max(0, head.x - 1); break;
+      case 'RIGHT': head.x = Math.min(GRID_SIZE - 1, head.x + 1); break;
     }
 
     // Check if snake hits itself
@@ -55,6 +49,24 @@ const Snake = () => {
 
     setSnake(newSnake);
   }, [snake, direction, food, gameOver]);
+
+  const moveHorizontally = (direction) => {
+    if (!currentPiece) return;
+    const newX = currentPiece.x + direction;
+    if (isValidMove(currentPiece.shape, newX, currentPiece.y)) {
+      setCurrentPiece({ ...currentPiece, x: newX });
+    }
+  };
+
+  const rotate = () => {
+    if (!currentPiece) return;
+    const rotatedShape = currentPiece.shape[0].map((_, index) =>
+      currentPiece.shape.map(row => row[index]).reverse()
+    );
+    if (isValidMove(rotatedShape, currentPiece.x, currentPiece.y)) {
+      setCurrentPiece({ ...currentPiece, shape: rotatedShape });
+    }
+  };
 
   const changeDirection = useCallback((newDirection) => {
     setDirection(prevDirection => {
