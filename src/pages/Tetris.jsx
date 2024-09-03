@@ -111,7 +111,7 @@ const Tetris = () => {
     const newX = currentPiece.x + dx;
     const newY = currentPiece.y + dy;
     if (isValidMove(newX, newY, currentPiece.shape)) {
-      setCurrentPiece({ ...currentPiece, x: newX, y: newY });
+      setCurrentPiece(prevPiece => ({ ...prevPiece, x: newX, y: newY }));
     } else if (dy > 0) {
       placePiece();
     }
@@ -123,7 +123,7 @@ const Tetris = () => {
       currentPiece.shape.map(row => row[index]).reverse()
     );
     if (isValidMove(currentPiece.x, currentPiece.y, rotatedShape)) {
-      setCurrentPiece({ ...currentPiece, shape: rotatedShape });
+      setCurrentPiece(prevPiece => ({ ...prevPiece, shape: rotatedShape }));
     }
   };
 
@@ -133,7 +133,7 @@ const Tetris = () => {
     while (isValidMove(currentPiece.x, newY + 1, currentPiece.shape)) {
       newY++;
     }
-    setCurrentPiece({ ...currentPiece, y: newY });
+    setCurrentPiece(prevPiece => ({ ...prevPiece, y: newY }));
     placePiece();
   };
 
@@ -202,6 +202,22 @@ const Tetris = () => {
     setGameOver(false);
     setGameStarted(false);
   }, []);
+
+  useEffect(() => {
+    if (gameStarted && !gameOver) {
+      const gameLoop = setInterval(() => {
+        movePiece(0, 1);
+      }, 1000);
+      return () => clearInterval(gameLoop);
+    }
+  }, [gameStarted, gameOver]);
+
+  useEffect(() => {
+    if (score > highScore) {
+      setHighScore(score);
+      localStorage.setItem('tetrisHighScore', score.toString());
+    }
+  }, [score, highScore]);
 
   const shareOnTwitter = () => {
     const text = `I just scored ${score} in Tetris! Try to beat me! #TetrisChallenge`;
