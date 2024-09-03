@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-500 to-indigo-600 flex flex-col items-center justify-center">
-      <h1 className="text-5xl font-bold text-white mb-8">Fun Game Zone</h1>
+      <h1 className="text-5xl font-bold text-white mb-8">Retro Games</h1>
       <div className="grid grid-cols-2 gap-4">
         <Link to="/memory-game">
           <Button className="w-48 text-lg">Memory Game</Button>
