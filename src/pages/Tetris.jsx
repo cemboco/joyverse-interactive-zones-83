@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
 
+// Constants and helper functions
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 const BORDER_THICKNESS = 10;
@@ -17,6 +18,12 @@ const TETROMINOS = {
   Z: { shape: [[1, 1, 0], [0, 1, 1]], color: 'red' },
 };
 
+const getRandomTetromino = () => {
+  const tetrominos = 'IJLOSTZ';
+  const randTetromino = tetrominos[Math.floor(Math.random() * tetrominos.length)];
+  return TETROMINOS[randTetromino];
+};
+
 const Tetris = () => {
   const [board, setBoard] = useState(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
   const [currentPiece, setCurrentPiece] = useState(null);
@@ -28,6 +35,7 @@ const Tetris = () => {
     return saved ? parseInt(saved, 10) : 0;
   });
   const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
+  const gameLoopRef = useRef(null);
 
   useEffect(() => {
     const updateBoardSize = () => {
@@ -45,109 +53,18 @@ const Tetris = () => {
     return () => window.removeEventListener('resize', updateBoardSize);
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-        e.preventDefault();
-      }
-      if (gameStarted && !gameOver) {
-        switch (e.key) {
-          case 'ArrowLeft':
-            movePiece(-1, 0);
-            break;
-          case 'ArrowRight':
-            movePiece(1, 0);
-            break;
-          case 'ArrowDown':
-            movePiece(0, 1);
-            break;
-          case 'ArrowUp':
-            rotatePiece();
-            break;
-          case ' ':
-            dropPiece();
-            break;
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameStarted, gameOver, currentPiece]);
-
-  const generateNewPiece = () => {
-    const pieces = Object.keys(TETROMINOS);
-    const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
-    return {
-      shape: TETROMINOS[randomPiece].shape,
-      color: TETROMINOS[randomPiece].color,
-      x: Math.floor(BOARD_WIDTH / 2) - Math.floor(TETROMINOS[randomPiece].shape[0].length / 2),
-      y: 0
-    };
-  };
-
-  const startGame = () => {
-    if (!gameStarted && !gameOver) {
-      setGameStarted(true);
-      setCurrentPiece(generateNewPiece());
-      setGameLoop();
-    }
-  };
-
-  const setGameLoop = () => {
-    const gameInterval = setInterval(() => {
-      if (!gameOver) {
-        movePiece(0, 1);
-      } else {
-        clearInterval(gameInterval);
-      }
-    }, 1000);
-
-    return () => clearInterval(gameInterval);
-  };
-
-  const movePiece = (dx, dy) => {
-    if (!currentPiece) return;
-    const newX = currentPiece.x + dx;
-    const newY = currentPiece.y + dy;
-    if (isValidMove(newX, newY, currentPiece.shape)) {
-      setCurrentPiece(prevPiece => ({ ...prevPiece, x: newX, y: newY }));
-    } else if (dy > 0) {
-      placePiece();
-    }
-  };
-
-  const rotatePiece = () => {
-    if (!currentPiece) return;
-    const rotatedShape = currentPiece.shape[0].map((_, index) =>
-      currentPiece.shape.map(row => row[index]).reverse()
-    );
-    if (isValidMove(currentPiece.x, currentPiece.y, rotatedShape)) {
-      setCurrentPiece(prevPiece => ({ ...prevPiece, shape: rotatedShape }));
-    }
-  };
-
-  const dropPiece = () => {
-    if (!currentPiece) return;
-    let newY = currentPiece.y;
-    while (isValidMove(currentPiece.x, newY + 1, currentPiece.shape)) {
-      newY++;
-    }
-    setCurrentPiece(prevPiece => ({ ...prevPiece, y: newY }));
-    placePiece();
-  };
-
-  const isValidMove = (x, y, shape) => {
-    for (let row = 0; row < shape.length; row++) {
-      for (let col = 0; col < shape[row].length; col++) {
-        if (shape[row][col]) {
-          const newX = x + col;
-          const newY = y + row;
+  const isValidMove = useCallback((piece, boardRow, boardCol) => {
+    for (let row = 0; row < piece.shape.length; row++) {
+      for (let col = 0; col < piece.shape[row].length; col++) {
+        if (piece.shape[row][col]) {
+          const newRow = boardRow + row;
+          const newCol = boardCol + col;
           if (
-            newX < 0 ||
-            newX >= BOARD_WIDTH ||
-            newY >= BOARD_HEIGHT ||
-            (newY >= 0 && board[newY][newX])
+            newRow < 0 ||
+            newRow >= BOARD_HEIGHT ||
+            newCol < 0 ||
+            newCol >= BOARD_WIDTH ||
+            board[newRow][newCol]
           ) {
             return false;
           }
@@ -155,10 +72,16 @@ const Tetris = () => {
       }
     }
     return true;
-  };
+  }, [board]);
 
-  const placePiece = () => {
-    if (!currentPiece) return;
+  const rotatePiece = useCallback((piece) => {
+    const newShape = piece.shape[0].map((_, index) =>
+      piece.shape.map(row => row[index]).reverse()
+    );
+    return { ...piece, shape: newShape };
+  }, []);
+
+  const placePiece = useCallback(() => {
     const newBoard = board.map(row => [...row]);
     currentPiece.shape.forEach((row, y) => {
       row.forEach((cell, x) => {
@@ -171,16 +94,7 @@ const Tetris = () => {
         }
       });
     });
-    setBoard(newBoard);
-    clearLines(newBoard);
-    const newPiece = generateNewPiece();
-    setCurrentPiece(newPiece);
-    if (!isValidMove(newPiece.x, newPiece.y, newPiece.shape)) {
-      setGameOver(true);
-    }
-  };
 
-  const clearLines = (newBoard) => {
     let linesCleared = 0;
     for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
       if (newBoard[y].every(cell => cell !== null)) {
@@ -190,10 +104,105 @@ const Tetris = () => {
         y++;
       }
     }
-    if (linesCleared > 0) {
-      setScore(prevScore => prevScore + linesCleared * 100);
+
+    setBoard(newBoard);
+    setScore(prevScore => prevScore + linesCleared * 100);
+    const newPiece = {
+      ...getRandomTetromino(),
+      x: Math.floor(BOARD_WIDTH / 2) - 1,
+      y: 0
+    };
+    setCurrentPiece(newPiece);
+
+    if (!isValidMove(newPiece, newPiece.y, newPiece.x)) {
+      setGameOver(true);
     }
-  };
+  }, [board, currentPiece, isValidMove]);
+
+  const movePiece = useCallback((dx, dy) => {
+    if (!currentPiece) return;
+    const newX = currentPiece.x + dx;
+    const newY = currentPiece.y + dy;
+    if (isValidMove(currentPiece, newY, newX)) {
+      setCurrentPiece(prevPiece => ({ ...prevPiece, x: newX, y: newY }));
+    } else if (dy > 0) {
+      placePiece();
+    }
+  }, [currentPiece, isValidMove, placePiece]);
+
+  const hardDrop = useCallback(() => {
+    if (!currentPiece) return;
+    let newY = currentPiece.y;
+    while (isValidMove(currentPiece, newY + 1, currentPiece.x)) {
+      newY++;
+    }
+    setCurrentPiece(prevPiece => ({ ...prevPiece, y: newY }));
+    placePiece();
+  }, [currentPiece, isValidMove, placePiece]);
+
+  const handleKeyDown = useCallback((e) => {
+    if (gameStarted && !gameOver) {
+      switch (e.key) {
+        case 'ArrowLeft':
+          movePiece(-1, 0);
+          break;
+        case 'ArrowRight':
+          movePiece(1, 0);
+          break;
+        case 'ArrowDown':
+          movePiece(0, 1);
+          break;
+        case 'ArrowUp':
+          const rotated = rotatePiece(currentPiece);
+          if (isValidMove(rotated, currentPiece.y, currentPiece.x)) {
+            setCurrentPiece(rotated);
+          }
+          break;
+        case ' ':
+          hardDrop();
+          break;
+      }
+    }
+  }, [gameStarted, gameOver, movePiece, rotatePiece, currentPiece, isValidMove, hardDrop]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  const startGame = useCallback(() => {
+    if (!gameStarted && !gameOver) {
+      setGameStarted(true);
+      setBoard(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
+      setCurrentPiece({
+        ...getRandomTetromino(),
+        x: Math.floor(BOARD_WIDTH / 2) - 1,
+        y: 0
+      });
+      setScore(0);
+      setGameOver(false);
+    }
+  }, [gameStarted, gameOver]);
+
+  useEffect(() => {
+    if (gameStarted && !gameOver) {
+      const gameLoop = () => {
+        movePiece(0, 1);
+        gameLoopRef.current = requestAnimationFrame(gameLoop);
+      };
+      gameLoopRef.current = requestAnimationFrame(gameLoop);
+    } else if (gameOver) {
+      cancelAnimationFrame(gameLoopRef.current);
+    }
+    return () => cancelAnimationFrame(gameLoopRef.current);
+  }, [gameStarted, gameOver, movePiece]);
+
+  useEffect(() => {
+    if (score > highScore) {
+      setHighScore(score);
+      localStorage.setItem('tetrisHighScore', score.toString());
+    }
+  }, [score, highScore]);
 
   const resetGame = useCallback(() => {
     setBoard(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
@@ -202,22 +211,6 @@ const Tetris = () => {
     setGameOver(false);
     setGameStarted(false);
   }, []);
-
-  useEffect(() => {
-    if (gameStarted && !gameOver) {
-      const gameLoop = setInterval(() => {
-        movePiece(0, 1);
-      }, 1000);
-      return () => clearInterval(gameLoop);
-    }
-  }, [gameStarted, gameOver]);
-
-  useEffect(() => {
-    if (score > highScore) {
-      setHighScore(score);
-      localStorage.setItem('tetrisHighScore', score.toString());
-    }
-  }, [score, highScore]);
 
   const shareOnTwitter = () => {
     const text = `I just scored ${score} in Tetris! Try to beat me! #TetrisChallenge`;
