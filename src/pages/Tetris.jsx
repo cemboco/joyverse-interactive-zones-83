@@ -65,7 +65,7 @@ const Tetris = () => {
             rotatePiece();
             break;
           case ' ':
-            dropPiece();
+            hardDrop();
             break;
         }
       }
@@ -127,7 +127,7 @@ const Tetris = () => {
     }
   };
 
-  const dropPiece = () => {
+  const hardDrop = () => {
     if (!currentPiece) return;
     let newY = currentPiece.y;
     while (isValidMove(currentPiece.x, newY + 1, currentPiece.shape)) {
@@ -191,7 +191,14 @@ const Tetris = () => {
       }
     }
     if (linesCleared > 0) {
-      setScore(prevScore => prevScore + linesCleared * 100);
+      setScore(prevScore => {
+        const newScore = prevScore + linesCleared * 100;
+        if (newScore > highScore) {
+          setHighScore(newScore);
+          localStorage.setItem('tetrisHighScore', newScore.toString());
+        }
+        return newScore;
+      });
     }
   };
 
@@ -211,13 +218,6 @@ const Tetris = () => {
       return () => clearInterval(gameLoop);
     }
   }, [gameStarted, gameOver]);
-
-  useEffect(() => {
-    if (score > highScore) {
-      setHighScore(score);
-      localStorage.setItem('tetrisHighScore', score.toString());
-    }
-  }, [score, highScore]);
 
   const shareOnTwitter = () => {
     const text = `I just scored ${score} in Tetris! Try to beat me! #TetrisChallenge`;
