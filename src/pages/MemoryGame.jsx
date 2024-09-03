@@ -44,7 +44,10 @@ const MemoryGame = () => {
 
   const handleKeyPress = (e, id) => {
     if (e.key === 'l') {
-      handleCardClick(id);
+      const matchingCard = cards.find(card => card.symbol === cards[id].symbol && card.id !== id);
+      if (matchingCard) {
+        handleCardClick(matchingCard.id);
+      }
     }
   };
 
@@ -107,6 +110,7 @@ const MemoryGame = () => {
                 ? 'bg-white'
                 : 'bg-gray-300'
             }`}
+            onClick={() => handleCardClick(card.id)}
             tabIndex={0}
             onKeyDown={(e) => handleKeyPress(e, card.id)}
           >
