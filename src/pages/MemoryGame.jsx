@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { HomeIcon } from 'lucide-react';
+import Confetti from 'react-confetti';
 
 const MemoryGame = () => {
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [solved, setSolved] = useState([]);
   const [disabled, setDisabled] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     initializeCards();
@@ -36,9 +38,16 @@ const MemoryGame = () => {
   const checkForMatch = (flippedCards) => {
     const [first, second] = flippedCards;
     if (cards[first].symbol === cards[second].symbol) {
-      setSolved([...solved, cards[first].symbol]);
+      const newSolved = [...solved, cards[first].symbol];
+      setSolved(newSolved);
       setFlipped([]);
       setDisabled(false);
+      
+      // Check if all pairs are solved
+      if (newSolved.length === cards.length / 2) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
+      }
     } else {
       setTimeout(() => {
         setFlipped([]);
@@ -51,11 +60,13 @@ const MemoryGame = () => {
     setFlipped([]);
     setSolved([]);
     setDisabled(false);
+    setShowConfetti(false);
     initializeCards();
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-green-400 to-blue-500 p-8">
+      {showConfetti && <Confetti />}
       <Link to="/" className="absolute top-4 left-4">
         <Button variant="outline" size="icon">
           <HomeIcon className="h-4 w-4" />
