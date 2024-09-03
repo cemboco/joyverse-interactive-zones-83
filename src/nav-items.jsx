@@ -1,4 +1,4 @@
-import { HomeIcon, BrainIcon, HashIcon, SnakeIcon, SquareStackIcon, BrickWallIcon } from "lucide-react";
+import { HomeIcon, BrainIcon, HashIcon, WormIcon, SquareStackIcon, BrickWallIcon } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import MemoryGame from "./pages/MemoryGame.jsx";
 import TicTacToe from "./pages/TicTacToe.jsx";
@@ -28,7 +28,7 @@ export const navItems = [
   {
     title: "Snake",
     to: "/snake",
-    icon: <SnakeIcon className="h-4 w-4" />,
+    icon: <WormIcon className="h-4 w-4" />,
     page: <Snake />,
   },
   {
