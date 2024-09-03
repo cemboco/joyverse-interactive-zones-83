@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
-import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
+import { HomeIcon, InstagramIcon } from 'lucide-react';
 import Confetti from 'react-confetti';
 
 const MemoryGame = () => {
@@ -139,7 +139,6 @@ const MemoryGame = () => {
         <Button onClick={resetGame} className="mb-4">Reset Game</Button>
         <div className="flex justify-center space-x-4">
           <Button onClick={shareOnTwitter} className="bg-blue-400 hover:bg-blue-500">
-            <TwitterIcon className="h-5 w-5 mr-2" />
             Share on X.com
           </Button>
           <Button onClick={shareOnInstagram} className="bg-pink-500 hover:bg-pink-600">

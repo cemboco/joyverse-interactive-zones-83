@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
-import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
+import { HomeIcon, InstagramIcon } from 'lucide-react';
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
@@ -179,7 +179,6 @@ const Snake = () => {
       </Button>
       <div className="flex justify-center space-x-4 mt-4">
         <Button onClick={shareOnTwitter} className="bg-blue-400 hover:bg-blue-500">
-          <TwitterIcon className="h-5 w-5 mr-2" />
           Share on X.com
         </Button>
         <Button onClick={shareOnInstagram} className="bg-pink-500 hover:bg-pink-600">
