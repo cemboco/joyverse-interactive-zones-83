@@ -4,20 +4,20 @@ import { Button } from "@/components/ui/button";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-500 to-indigo-600 flex flex-col items-center justify-center">
-      <h1 className="text-5xl font-bold text-white mb-8">Retro Games</h1>
-      <div className="grid grid-cols-2 gap-4">
-        <Link to="/memory-game">
-          <Button className="w-48 text-lg">Memory Game</Button>
+    <div className="min-h-screen bg-gradient-to-r from-purple-500 to-indigo-600 flex flex-col items-center justify-center p-4">
+      <h1 className="text-4xl md:text-5xl font-bold text-white mb-8 text-center">Retro Games</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+        <Link to="/memory-game" className="w-full">
+          <Button className="w-full text-lg py-6">Memory Game</Button>
         </Link>
-        <Link to="/tic-tac-toe">
-          <Button className="w-48 text-lg">Tic-Tac-Toe</Button>
+        <Link to="/tic-tac-toe" className="w-full">
+          <Button className="w-full text-lg py-6">Tic-Tac-Toe</Button>
         </Link>
-        <Link to="/snake">
-          <Button className="w-48 text-lg">Snake</Button>
+        <Link to="/snake" className="w-full">
+          <Button className="w-full text-lg py-6">Snake</Button>
         </Link>
-        <Link to="/tetris">
-          <Button className="w-48 text-lg">Tetris</Button>
+        <Link to="/tetris" className="w-full">
+          <Button className="w-full text-lg py-6">Tetris</Button>
         </Link>
       </div>
     </div>
