@@ -50,20 +50,28 @@ const Snake = () => {
     setSnake(newSnake);
   }, [snake, direction, food, gameOver]);
 
+  const changeDirection = useCallback((newDirection) => {
+    setDirection(prevDirection => {
+      const opposites = {
+        'UP': 'DOWN',
+        'DOWN': 'UP',
+        'LEFT': 'RIGHT',
+        'RIGHT': 'LEFT'
+      };
+      return opposites[prevDirection] !== newDirection ? newDirection : prevDirection;
+    });
+  }, []);
+
   useEffect(() => {
     if (gameOver) return;
 
     const handleKeyPress = (e) => {
-      const newDirection = (() => {
-        switch (e.key) {
-          case 'ArrowUp': return direction !== 'DOWN' ? 'UP' : direction;
-          case 'ArrowDown': return direction !== 'UP' ? 'DOWN' : direction;
-          case 'ArrowLeft': return direction !== 'RIGHT' ? 'LEFT' : direction;
-          case 'ArrowRight': return direction !== 'LEFT' ? 'RIGHT' : direction;
-          default: return direction;
-        }
-      })();
-      setDirection(newDirection);
+      switch (e.key) {
+        case 'ArrowUp': changeDirection('UP'); break;
+        case 'ArrowDown': changeDirection('DOWN'); break;
+        case 'ArrowLeft': changeDirection('LEFT'); break;
+        case 'ArrowRight': changeDirection('RIGHT'); break;
+      }
     };
 
     document.addEventListener('keydown', handleKeyPress);
@@ -73,7 +81,7 @@ const Snake = () => {
       document.removeEventListener('keydown', handleKeyPress);
       clearInterval(gameInterval);
     };
-  }, [gameOver, moveSnake, direction]);
+  }, [gameOver, moveSnake, changeDirection]);
 
   const resetGame = () => {
     setSnake(INITIAL_SNAKE);
