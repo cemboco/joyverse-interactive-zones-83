@@ -34,7 +34,87 @@ const Snake = () => {
     return () => window.removeEventListener('resize', updateBoardSize);
   }, []);
 
-  // ... (keep all the existing game logic)
+  const resetGame = useCallback(() => {
+    setSnake(INITIAL_SNAKE);
+    setFood(INITIAL_FOOD);
+    setDirection(INITIAL_DIRECTION);
+    setGameOver(false);
+    setScore(0);
+  }, []);
+
+  const moveSnake = useCallback(() => {
+    if (gameOver) return;
+
+    setSnake(prevSnake => {
+      const newSnake = [...prevSnake];
+      const head = { ...newSnake[0] };
+
+      switch (direction) {
+        case 'UP': head.y -= 1; break;
+        case 'DOWN': head.y += 1; break;
+        case 'LEFT': head.x -= 1; break;
+        case 'RIGHT': head.x += 1; break;
+      }
+
+      if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+        setGameOver(true);
+        return prevSnake;
+      }
+
+      newSnake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        setScore(prevScore => prevScore + 1);
+        setFood({
+          x: Math.floor(Math.random() * GRID_SIZE),
+          y: Math.floor(Math.random() * GRID_SIZE)
+        });
+      } else {
+        newSnake.pop();
+      }
+
+      return newSnake;
+    });
+  }, [direction, food, gameOver]);
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      switch (e.key) {
+        case 'ArrowUp': setDirection('UP'); break;
+        case 'ArrowDown': setDirection('DOWN'); break;
+        case 'ArrowLeft': setDirection('LEFT'); break;
+        case 'ArrowRight': setDirection('RIGHT'); break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  useEffect(() => {
+    const gameLoop = setInterval(moveSnake, 200);
+    return () => clearInterval(gameLoop);
+  }, [moveSnake]);
+
+  useEffect(() => {
+    if (gameOver && score > highScore) {
+      setHighScore(score);
+      localStorage.setItem('snakeHighScore', score.toString());
+    }
+  }, [gameOver, score, highScore]);
+
+  const shareOnTwitter = () => {
+    const text = `I just scored ${score} in Snake Game! Try to beat me! #SnakeGameChallenge`;
+    const url = 'https://your-game-url.com'; // Replace with your actual game URL
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  };
+
+  const shareOnInstagram = () => {
+    const text = `I just scored ${score} in Snake Game! Try to beat me! #SnakeGameChallenge\n\nPlay at: https://your-game-url.com`;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Challenge text copied! You can now paste it into your Instagram story.');
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-400 to-purple-500 flex flex-col items-center justify-center p-4">
