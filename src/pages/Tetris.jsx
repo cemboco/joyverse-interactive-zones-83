@@ -17,14 +17,14 @@ const TETROMINOS = {
   Z: { shape: [[1, 1, 0], [0, 1, 1]], color: 'red' },
 };
 
+const createEmptyBoard = () => {
+  return Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(0));
+};
+
 const Tetris = () => {
   const [board, setBoard] = useState(createEmptyBoard());
   const [currentPiece, setCurrentPiece] = useState(null);
   const [gameOver, setGameOver] = useState(false);
-
-  const createEmptyBoard = () => {
-    return Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(0));
-  };
 
   const spawnNewPiece = useCallback(() => {
     const tetrominos = Object.keys(TETROMINOS);
