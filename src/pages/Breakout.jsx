@@ -44,7 +44,7 @@ const Breakout = () => {
     const drawBall = () => {
       ctx.beginPath();
       ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2);
-      ctx.fillStyle = '#0095DD';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fill();
       ctx.closePath();
     };
@@ -52,7 +52,7 @@ const Breakout = () => {
     const drawPaddle = () => {
       ctx.beginPath();
       ctx.rect(paddleX, canvas.height - PADDLE_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT);
-      ctx.fillStyle = '#0095DD';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fill();
       ctx.closePath();
     };
@@ -67,7 +67,7 @@ const Breakout = () => {
             bricks[c][r].y = brickY;
             ctx.beginPath();
             ctx.rect(brickX, brickY, BRICK_WIDTH, BRICK_HEIGHT);
-            ctx.fillStyle = '#0095DD';
+            ctx.fillStyle = '#FFFFFF';
             ctx.fill();
             ctx.closePath();
           }
@@ -126,14 +126,15 @@ const Breakout = () => {
       }
     };
 
-    const handleMouseMove = (e) => {
-      const relativeX = e.clientX - canvas.offsetLeft;
-      if (relativeX > 0 && relativeX < canvas.width) {
-        setPaddleX(relativeX - PADDLE_WIDTH / 2);
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft' && paddleX > 0) {
+        setPaddleX(prevX => Math.max(0, prevX - 7));
+      } else if (e.key === 'ArrowRight' && paddleX < canvas.width - PADDLE_WIDTH) {
+        setPaddleX(prevX => Math.min(canvas.width - PADDLE_WIDTH, prevX + 7));
       }
     };
 
-    canvas.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('keydown', handleKeyDown);
     initializeBricks();
     setBallX(canvas.width / 2);
     setBallY(canvas.height - 30);
@@ -143,7 +144,7 @@ const Breakout = () => {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      canvas.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [ballDX, ballDY, bricks, gameOver, paddleX, score]);
 
