@@ -12,6 +12,7 @@ const Tetris = () => {
   const [currentPiece, setCurrentPiece] = useState(null);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
   const [highScore, setHighScore] = useState(() => {
     const saved = localStorage.getItem('tetrisHighScore');
     return saved ? parseInt(saved, 10) : 0;
@@ -34,12 +35,31 @@ const Tetris = () => {
     return () => window.removeEventListener('resize', updateBoardSize);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const resetGame = useCallback(() => {
     setBoard(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
     setCurrentPiece(null);
     setScore(0);
     setGameOver(false);
+    setGameStarted(false);
   }, []);
+
+  const startGame = () => {
+    if (!gameStarted && !gameOver) {
+      setGameStarted(true);
+      // Add logic to start the game, e.g., generating the first piece
+    }
+  };
 
   const shareOnTwitter = () => {
     const text = `I just scored ${score} in Tetris! Try to beat me! #TetrisChallenge`;
@@ -62,6 +82,11 @@ const Tetris = () => {
         </Button>
       </Link>
       <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Tetris</h1>
+      {!gameStarted && !gameOver && (
+        <Button onClick={startGame} className="mb-4 px-6 py-2 text-lg">
+          Start Game
+        </Button>
+      )}
       <div 
         className="relative bg-black" 
         style={{ 

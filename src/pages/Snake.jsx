@@ -34,6 +34,23 @@ const Snake = () => {
     return () => window.removeEventListener('resize', updateBoardSize);
   }, []);
 
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+      }
+      switch (e.key) {
+        case 'ArrowUp': setDirection('UP'); break;
+        case 'ArrowDown': setDirection('DOWN'); break;
+        case 'ArrowLeft': setDirection('LEFT'); break;
+        case 'ArrowRight': setDirection('RIGHT'); break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   const resetGame = useCallback(() => {
     setSnake(INITIAL_SNAKE);
     setFood(INITIAL_FOOD);
@@ -76,20 +93,6 @@ const Snake = () => {
       return newSnake;
     });
   }, [direction, food, gameOver]);
-
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      switch (e.key) {
-        case 'ArrowUp': setDirection('UP'); break;
-        case 'ArrowDown': setDirection('DOWN'); break;
-        case 'ArrowLeft': setDirection('LEFT'); break;
-        case 'ArrowRight': setDirection('RIGHT'); break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, []);
 
   useEffect(() => {
     const gameLoop = setInterval(moveSnake, 200);
