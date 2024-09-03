@@ -60,7 +60,7 @@ const Breakout = () => {
     const drawBricks = () => {
       for (let c = 0; c < BRICK_COLUMN_COUNT; c++) {
         for (let r = 0; r < BRICK_ROW_COUNT; r++) {
-          if (bricks[c][r].status === 1) {
+          if (bricks[c] && bricks[c][r] && bricks[c][r].status === 1) {
             const brickX = c * (BRICK_WIDTH + BRICK_PADDING) + BRICK_OFFSET_LEFT;
             const brickY = r * (BRICK_HEIGHT + BRICK_PADDING) + BRICK_OFFSET_TOP;
             bricks[c][r].x = brickX;
@@ -78,8 +78,8 @@ const Breakout = () => {
     const collisionDetection = () => {
       for (let c = 0; c < BRICK_COLUMN_COUNT; c++) {
         for (let r = 0; r < BRICK_ROW_COUNT; r++) {
-          const b = bricks[c][r];
-          if (b.status === 1) {
+          const b = bricks[c] && bricks[c][r];
+          if (b && b.status === 1) {
             if (
               ballX > b.x &&
               ballX < b.x + BRICK_WIDTH &&
@@ -89,7 +89,7 @@ const Breakout = () => {
               setBallDY(-ballDY);
               b.status = 0;
               setScore(prevScore => prevScore + 1);
-              if (score === BRICK_ROW_COUNT * BRICK_COLUMN_COUNT) {
+              if (score === BRICK_ROW_COUNT * BRICK_COLUMN_COUNT - 1) {
                 setGameOver(true);
               }
             }
