@@ -6,6 +6,7 @@ import { HomeIcon } from 'lucide-react';
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 const BLOCK_SIZE = 30;
+const BORDER_THICKNESS = 10;
 
 const TETROMINOS = {
   I: { shape: [[1, 1, 1, 1]], color: 'cyan' },
@@ -187,41 +188,50 @@ const Tetris = () => {
         </Button>
       </Link>
       <h1 className="text-4xl font-bold text-white mb-8">Tetris</h1>
-      <div className="relative border-4 border-white" style={{ width: BOARD_WIDTH * BLOCK_SIZE, height: BOARD_HEIGHT * BLOCK_SIZE }}>
-        {board.map((row, y) => (
-          row.map((cell, x) => (
-            <div
-              key={`${y}-${x}`}
-              className="absolute"
-              style={{
-                left: x * BLOCK_SIZE,
-                top: y * BLOCK_SIZE,
-                width: BLOCK_SIZE,
-                height: BLOCK_SIZE,
-                backgroundColor: cell || 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}
-            />
-          ))
-        ))}
-        {currentPiece && currentPiece.shape.map((row, y) => (
-          row.map((cell, x) => (
-            cell ? (
+      <div 
+        className="relative bg-black" 
+        style={{ 
+          width: BOARD_WIDTH * BLOCK_SIZE + 2 * BORDER_THICKNESS, 
+          height: BOARD_HEIGHT * BLOCK_SIZE + 2 * BORDER_THICKNESS,
+          padding: BORDER_THICKNESS
+        }}
+      >
+        <div className="relative bg-white" style={{ width: BOARD_WIDTH * BLOCK_SIZE, height: BOARD_HEIGHT * BLOCK_SIZE }}>
+          {board.map((row, y) => (
+            row.map((cell, x) => (
               <div
-                key={`piece-${y}-${x}`}
+                key={`${y}-${x}`}
                 className="absolute"
                 style={{
-                  left: (currentPiece.x + x) * BLOCK_SIZE,
-                  top: (currentPiece.y + y) * BLOCK_SIZE,
+                  left: x * BLOCK_SIZE,
+                  top: y * BLOCK_SIZE,
                   width: BLOCK_SIZE,
                   height: BLOCK_SIZE,
-                  backgroundColor: currentPiece.color,
-                  border: '1px solid rgba(255, 255, 255, 0.5)',
+                  backgroundColor: cell || 'transparent',
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
                 }}
               />
-            ) : null
-          ))
-        ))}
+            ))
+          ))}
+          {currentPiece && currentPiece.shape.map((row, y) => (
+            row.map((cell, x) => (
+              cell ? (
+                <div
+                  key={`piece-${y}-${x}`}
+                  className="absolute"
+                  style={{
+                    left: (currentPiece.x + x) * BLOCK_SIZE,
+                    top: (currentPiece.y + y) * BLOCK_SIZE,
+                    width: BLOCK_SIZE,
+                    height: BLOCK_SIZE,
+                    backgroundColor: currentPiece.color,
+                    border: '1px solid rgba(0, 0, 0, 0.3)',
+                  }}
+                />
+              ) : null
+            ))
+          ))}
+        </div>
       </div>
       <div className="mt-4 text-white text-2xl">Score: {score}</div>
       <div className="mt-2 text-white text-xl">High Score: {highScore}</div>
