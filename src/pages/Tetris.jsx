@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
 
-const GRID_WIDTH = 10;
-const GRID_HEIGHT = 16;
-const CELL_SIZE = 15;
+const GRID_WIDTH = 12;
+const GRID_HEIGHT = 20;
+const CELL_SIZE = 18;
 const BORDER_THICKNESS = 5;
 
 const Tetris = () => {
