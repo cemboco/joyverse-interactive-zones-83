@@ -20,7 +20,6 @@ const TETROMINOS = {
 const Tetris = () => {
   const [board, setBoard] = useState(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
   const [currentPiece, setCurrentPiece] = useState(null);
-  const [nextPiece, setNextPiece] = useState(null);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
@@ -32,7 +31,7 @@ const Tetris = () => {
 
   useEffect(() => {
     const updateBoardSize = () => {
-      const maxWidth = Math.min(window.innerWidth - 40, 300);
+      const maxWidth = Math.min(window.innerWidth - 40, 400);
       const maxHeight = window.innerHeight - 200;
       const cellSize = Math.floor(Math.min(maxWidth / BOARD_WIDTH, maxHeight / BOARD_HEIGHT));
       setBoardSize({
@@ -91,7 +90,6 @@ const Tetris = () => {
     if (!gameStarted && !gameOver) {
       setGameStarted(true);
       setCurrentPiece(generateNewPiece());
-      setNextPiece(generateNewPiece());
       setGameLoop();
     }
   };
@@ -175,9 +173,8 @@ const Tetris = () => {
     });
     setBoard(newBoard);
     clearLines(newBoard);
-    setCurrentPiece(nextPiece);
-    setNextPiece(generateNewPiece());
-    if (!isValidMove(nextPiece.x, nextPiece.y, nextPiece.shape)) {
+    setCurrentPiece(generateNewPiece());
+    if (!isValidMove(currentPiece.x, currentPiece.y, currentPiece.shape)) {
       setGameOver(true);
     }
   };
@@ -200,7 +197,6 @@ const Tetris = () => {
   const resetGame = useCallback(() => {
     setBoard(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null)));
     setCurrentPiece(null);
-    setNextPiece(null);
     setScore(0);
     setGameOver(false);
     setGameStarted(false);
@@ -234,32 +230,6 @@ const Tetris = () => {
     />
   );
 
-  const renderNextPiece = () => (
-    <div className={`absolute right-4 top-4 bg-white p-2 rounded ${window.innerWidth <= 768 ? 'sm:right-14' : ''}`}>
-      <div className="text-sm font-bold mb-1">Next:</div>
-      <div className="relative" style={{ width: 80, height: 80 }}>
-        {nextPiece && nextPiece.shape.map((row, y) =>
-          row.map((cell, x) =>
-            cell ? (
-              <div
-                key={`next-${y}-${x}`}
-                className="absolute"
-                style={{
-                  left: x * 20,
-                  top: y * 20,
-                  width: 20,
-                  height: 20,
-                  backgroundColor: nextPiece.color,
-                  border: '1px solid rgba(0, 0, 0, 0.3)',
-                }}
-              />
-            ) : null
-          )
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-400 to-purple-500 flex flex-col items-center justify-center p-4">
       <Link to="/" className="absolute top-4 left-4">
@@ -288,7 +258,6 @@ const Tetris = () => {
               cell ? renderCell(currentPiece.color, currentPiece.x + x, currentPiece.y + y) : null
             )
           )}
-          {renderNextPiece()}
         </div>
       </div>
       <div className="mt-4 text-white text-xl">Score: {score}</div>
