@@ -57,17 +57,10 @@ const Tetris = () => {
     } else {
       placePiece();
       const clearedLines = clearLines();
-      setScore(prevScore => {
-        const newScore = prevScore + clearedLines * 100;
-        if (newScore > highScore) {
-          setHighScore(newScore);
-          localStorage.setItem('tetrisHighScore', newScore.toString());
-        }
-        return newScore;
-      });
+      updateScore(clearedLines);
       spawnNewPiece();
     }
-  }, [currentPiece, spawnNewPiece, highScore]);
+  }, [currentPiece, spawnNewPiece]);
 
   const moveHorizontally = (direction) => {
     if (!currentPiece) return;
@@ -116,6 +109,7 @@ const Tetris = () => {
       });
     });
     setBoard(newBoard);
+    updateScore(0); // Add 1 point for placing a piece
   };
 
   const clearLines = () => {
@@ -130,6 +124,20 @@ const Tetris = () => {
     const newRows = Array.from({ length: linesCleared }, () => Array(BOARD_WIDTH).fill(0));
     setBoard([...newRows, ...newBoard]);
     return linesCleared;
+  };
+
+  const updateScore = (clearedLines) => {
+    setScore(prevScore => {
+      let newScore = prevScore + 1; // 1 point for placing a piece
+      if (clearedLines > 0) {
+        newScore += clearedLines * 2; // 2 points for each cleared line
+      }
+      if (newScore > highScore) {
+        setHighScore(newScore);
+        localStorage.setItem('tetrisHighScore', newScore.toString());
+      }
+      return newScore;
+    });
   };
 
   useEffect(() => {
