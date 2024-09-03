@@ -5,7 +5,7 @@ import { HomeIcon } from 'lucide-react';
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
-const BORDER_THICKNESS = 10; // Increased border thickness
+const BORDER_THICKNESS = 10;
 const INITIAL_SNAKE = [{ x: 10, y: 10 }];
 const INITIAL_FOOD = { x: 15, y: 15 };
 const INITIAL_DIRECTION = 'RIGHT';
@@ -24,10 +24,16 @@ const Snake = () => {
     const head = { ...newSnake[0] };
 
     switch (direction) {
-      case 'UP': head.y = (head.y - 1 + GRID_SIZE) % GRID_SIZE; break;
-      case 'DOWN': head.y = (head.y + 1) % GRID_SIZE; break;
-      case 'LEFT': head.x = (head.x - 1 + GRID_SIZE) % GRID_SIZE; break;
-      case 'RIGHT': head.x = (head.x + 1) % GRID_SIZE; break;
+      case 'UP': head.y -= 1; break;
+      case 'DOWN': head.y += 1; break;
+      case 'LEFT': head.x -= 1; break;
+      case 'RIGHT': head.x += 1; break;
+    }
+
+    // Check if snake hits the border
+    if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+      setGameOver(true);
+      return;
     }
 
     // Check if snake hits itself
