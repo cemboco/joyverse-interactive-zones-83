@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import { HomeIcon } from 'lucide-react';
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
@@ -46,6 +48,8 @@ const Snake = () => {
   }, [snake, direction, food, gameOver]);
 
   useEffect(() => {
+    if (gameOver) return;
+
     const handleKeyPress = (e) => {
       switch (e.key) {
         case 'ArrowUp': setDirection('UP'); break;
@@ -56,14 +60,13 @@ const Snake = () => {
     };
 
     document.addEventListener('keydown', handleKeyPress);
-
     const gameInterval = setInterval(moveSnake, 200);
 
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
       clearInterval(gameInterval);
     };
-  }, [moveSnake]);
+  }, [gameOver, moveSnake]);
 
   const resetGame = () => {
     setSnake(INITIAL_SNAKE);
@@ -74,6 +77,11 @@ const Snake = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-400 to-purple-500 flex flex-col items-center justify-center">
+      <Link to="/" className="absolute top-4 left-4">
+        <Button variant="outline" size="icon">
+          <HomeIcon className="h-4 w-4" />
+        </Button>
+      </Link>
       <h1 className="text-4xl font-bold text-white mb-8">Snake Game</h1>
       <div className="border-4 border-white" style={{ width: GRID_SIZE * CELL_SIZE, height: GRID_SIZE * CELL_SIZE }}>
         {snake.map((segment, index) => (

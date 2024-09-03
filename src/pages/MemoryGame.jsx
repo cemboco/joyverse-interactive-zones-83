@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Link } from 'react-router-dom';
+import { HomeIcon } from 'lucide-react';
 
 const MemoryGame = () => {
   const [cards, setCards] = useState([]);
@@ -54,6 +56,11 @@ const MemoryGame = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-green-400 to-blue-500 p-8">
+      <Link to="/" className="absolute top-4 left-4">
+        <Button variant="outline" size="icon">
+          <HomeIcon className="h-4 w-4" />
+        </Button>
+      </Link>
       <h1 className="text-4xl font-bold text-white text-center mb-8">Memory Game</h1>
       <div className="grid grid-cols-4 gap-4 max-w-md mx-auto">
         {cards.map((card) => (

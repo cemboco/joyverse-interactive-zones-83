@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import { HomeIcon } from 'lucide-react';
 
 const PADDLE_HEIGHT = 10;
 const PADDLE_WIDTH = 75;
@@ -166,6 +168,11 @@ const Breakout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-green-400 to-blue-500 flex flex-col items-center justify-center">
+      <Link to="/" className="absolute top-4 left-4">
+        <Button variant="outline" size="icon">
+          <HomeIcon className="h-4 w-4" />
+        </Button>
+      </Link>
       <h1 className="text-4xl font-bold text-white mb-8">Breakout</h1>
       <canvas ref={canvasRef} width="480" height="320" className="border-4 border-white" />
       <div className="mt-4 text-white text-2xl">Score: {score}</div>

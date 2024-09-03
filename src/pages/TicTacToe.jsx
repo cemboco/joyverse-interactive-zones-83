@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import { HomeIcon } from 'lucide-react';
 
 const TicTacToe = () => {
   const [board, setBoard] = useState(Array(9).fill(null));
@@ -59,6 +61,11 @@ const TicTacToe = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-yellow-400 to-orange-500 flex flex-col items-center justify-center">
+      <Link to="/" className="absolute top-4 left-4">
+        <Button variant="outline" size="icon">
+          <HomeIcon className="h-4 w-4" />
+        </Button>
+      </Link>
       <h1 className="text-4xl font-bold text-white mb-8">Tic-Tac-Toe</h1>
       <div className="mb-4 text-2xl font-semibold text-white">{status}</div>
       <div className="grid grid-cols-3 gap-2 mb-4">

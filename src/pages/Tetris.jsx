@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import { HomeIcon } from 'lucide-react';
 
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
@@ -138,6 +140,11 @@ const Tetris = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-400 to-purple-500 flex flex-col items-center justify-center">
+      <Link to="/" className="absolute top-4 left-4">
+        <Button variant="outline" size="icon">
+          <HomeIcon className="h-4 w-4" />
+        </Button>
+      </Link>
       <h1 className="text-4xl font-bold text-white mb-8">Tetris</h1>
       <div className="border-4 border-white" style={{ width: BOARD_WIDTH * BLOCK_SIZE, height: BOARD_HEIGHT * BLOCK_SIZE }}>
         {board.map((row, y) => (
