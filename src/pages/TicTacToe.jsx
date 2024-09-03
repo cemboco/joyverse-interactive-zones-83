@@ -4,7 +4,30 @@ import { Link } from 'react-router-dom';
 import { HomeIcon } from 'lucide-react';
 
 const TicTacToe = () => {
-  // ... (keep all the existing state variables and game logic)
+  const [board, setBoard] = useState(Array(9).fill(null));
+  const [xIsNext, setXIsNext] = useState(true);
+  const [status, setStatus] = useState('Next player: X');
+  const [winCount, setWinCount] = useState({ X: 0, O: 0 });
+
+  useEffect(() => {
+    const winner = calculateWinner(board);
+    if (winner) {
+      setStatus(`Winner: ${winner}`);
+      setWinCount(prev => ({ ...prev, [winner]: prev[winner] + 1 }));
+    } else if (board.every(square => square !== null)) {
+      setStatus('Draw!');
+    } else {
+      setStatus(`Next player: ${xIsNext ? 'X' : 'O'}`);
+    }
+  }, [board, xIsNext]);
+
+  const handleClick = (i) => {
+    if (calculateWinner(board) || board[i]) return;
+    const newBoard = board.slice();
+    newBoard[i] = xIsNext ? 'X' : 'O';
+    setBoard(newBoard);
+    setXIsNext(!xIsNext);
+  };
 
   const renderSquare = (i) => (
     <Button
@@ -15,7 +38,10 @@ const TicTacToe = () => {
     </Button>
   );
 
-  // ... (keep all the existing game logic)
+  const resetGame = () => {
+    setBoard(Array(9).fill(null));
+    setXIsNext(true);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-yellow-400 to-orange-500 flex flex-col items-center justify-center p-4">
@@ -39,6 +65,26 @@ const TicTacToe = () => {
       <Button onClick={resetGame} className="mt-4 px-6 py-2 text-lg">Reset Game</Button>
     </div>
   );
+};
+
+const calculateWinner = (squares) => {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
 };
 
 export default TicTacToe;
