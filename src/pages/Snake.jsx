@@ -16,6 +16,10 @@ const Snake = () => {
   const [direction, setDirection] = useState(INITIAL_DIRECTION);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    const saved = localStorage.getItem('snakeHighScore');
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   const moveSnake = useCallback(() => {
     if (gameOver) return;
@@ -30,13 +34,11 @@ const Snake = () => {
       case 'RIGHT': head.x += 1; break;
     }
 
-    // Check if snake hits the border
     if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
       setGameOver(true);
       return;
     }
 
-    // Check if snake hits itself
     if (newSnake.some(segment => segment.x === head.x && segment.y === head.y)) {
       setGameOver(true);
       return;
@@ -49,13 +51,20 @@ const Snake = () => {
         x: Math.floor(Math.random() * GRID_SIZE),
         y: Math.floor(Math.random() * GRID_SIZE),
       });
-      setScore(prevScore => prevScore + 1);
+      setScore(prevScore => {
+        const newScore = prevScore + 1;
+        if (newScore > highScore) {
+          setHighScore(newScore);
+          localStorage.setItem('snakeHighScore', newScore.toString());
+        }
+        return newScore;
+      });
     } else {
       newSnake.pop();
     }
 
     setSnake(newSnake);
-  }, [snake, direction, food, gameOver]);
+  }, [snake, direction, food, gameOver, highScore]);
 
   const changeDirection = useCallback((newDirection) => {
     setDirection(prevDirection => {
@@ -98,6 +107,14 @@ const Snake = () => {
     setScore(0);
   };
 
+  useEffect(() => {
+    if (gameOver) {
+      const games = JSON.parse(localStorage.getItem('snakeGames') || '[]');
+      games.push({ score, date: new Date().toISOString() });
+      localStorage.setItem('snakeGames', JSON.stringify(games));
+    }
+  }, [gameOver, score]);
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-400 to-purple-500 flex flex-col items-center justify-center">
       <Link to="/" className="absolute top-4 left-4">
@@ -139,6 +156,7 @@ const Snake = () => {
         </div>
       </div>
       <div className="mt-4 text-white text-2xl">Score: {score}</div>
+      <div className="mt-2 text-white text-xl">High Score: {highScore}</div>
       {gameOver && (
         <div className="mt-4 text-white text-2xl">Game Over!</div>
       )}

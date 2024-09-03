@@ -18,6 +18,10 @@ const Breakout = () => {
   const canvasRef = useRef(null);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    const saved = localStorage.getItem('breakoutHighScore');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [paddleX, setPaddleX] = useState(0);
   const [ballX, setBallX] = useState(0);
   const [ballY, setBallY] = useState(0);
@@ -88,7 +92,14 @@ const Breakout = () => {
             ) {
               setBallDY(prevDY => -prevDY);
               b.status = 0;
-              setScore(prevScore => prevScore + 1);
+              setScore(prevScore => {
+                const newScore = prevScore + 1;
+                if (newScore > highScore) {
+                  setHighScore(newScore);
+                  localStorage.setItem('breakoutHighScore', newScore.toString());
+                }
+                return newScore;
+              });
               if (score === BRICK_ROW_COUNT * BRICK_COLUMN_COUNT - 1) {
                 setGameOver(true);
               }
@@ -146,7 +157,7 @@ const Breakout = () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [ballDX, ballDY, bricks, gameOver, paddleX, score]);
+  }, [ballDX, ballDY, bricks, gameOver, paddleX, score, highScore]);
 
   const resetGame = () => {
     setGameOver(false);
@@ -167,6 +178,14 @@ const Breakout = () => {
     setBricks(newBricks);
   };
 
+  useEffect(() => {
+    if (gameOver) {
+      const games = JSON.parse(localStorage.getItem('breakoutGames') || '[]');
+      games.push({ score, date: new Date().toISOString() });
+      localStorage.setItem('breakoutGames', JSON.stringify(games));
+    }
+  }, [gameOver, score]);
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-green-400 to-white-500 flex flex-col items-center justify-center">
       <Link to="/" className="absolute top-4 left-4">
@@ -177,6 +196,7 @@ const Breakout = () => {
       <h1 className="text-4xl font-bold text-white mb-8">Breakout</h1>
       <canvas ref={canvasRef} width="480" height="320" className="border-4 border-white" />
       <div className="mt-4 text-white text-2xl">Score: {score}</div>
+      <div className="mt-2 text-white text-xl">High Score: {highScore}</div>
       {gameOver && (
         <div className="mt-4 text-white text-2xl">Game Over!</div>
       )}

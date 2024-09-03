@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { HomeIcon } from 'lucide-react';
@@ -6,6 +6,11 @@ import { HomeIcon } from 'lucide-react';
 const TicTacToe = () => {
   const [board, setBoard] = useState(Array(9).fill(null));
   const [xIsNext, setXIsNext] = useState(true);
+  const [gameOver, setGameOver] = useState(false);
+  const [winCount, setWinCount] = useState(() => {
+    const saved = localStorage.getItem('ticTacToeWinCount');
+    return saved ? JSON.parse(saved) : { X: 0, O: 0 };
+  });
 
   const calculateWinner = (squares) => {
     const lines = [
@@ -28,11 +33,23 @@ const TicTacToe = () => {
   };
 
   const handleClick = (i) => {
-    if (calculateWinner(board) || board[i]) return;
+    if (calculateWinner(board) || board[i] || gameOver) return;
     const newBoard = board.slice();
     newBoard[i] = xIsNext ? 'X' : 'O';
     setBoard(newBoard);
     setXIsNext(!xIsNext);
+
+    const winner = calculateWinner(newBoard);
+    if (winner) {
+      setGameOver(true);
+      setWinCount(prevCount => {
+        const newCount = { ...prevCount, [winner]: prevCount[winner] + 1 };
+        localStorage.setItem('ticTacToeWinCount', JSON.stringify(newCount));
+        return newCount;
+      });
+    } else if (newBoard.every(Boolean)) {
+      setGameOver(true);
+    }
   };
 
   const renderSquare = (i) => (
@@ -57,7 +74,16 @@ const TicTacToe = () => {
   const resetGame = () => {
     setBoard(Array(9).fill(null));
     setXIsNext(true);
+    setGameOver(false);
   };
+
+  useEffect(() => {
+    if (gameOver) {
+      const games = JSON.parse(localStorage.getItem('ticTacToeGames') || '[]');
+      games.push({ winner: winner || 'Draw', date: new Date().toISOString() });
+      localStorage.setItem('ticTacToeGames', JSON.stringify(games));
+    }
+  }, [gameOver, winner]);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-yellow-400 to-orange-500 flex flex-col items-center justify-center">
@@ -71,7 +97,10 @@ const TicTacToe = () => {
       <div className="grid grid-cols-3 gap-2 mb-4">
         {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => renderSquare(i))}
       </div>
-      <Button onClick={resetGame}>Reset Game</Button>
+      <div className="mt-4 text-white text-xl">
+        X Wins: {winCount.X} | O Wins: {winCount.O}
+      </div>
+      <Button onClick={resetGame} className="mt-4">Reset Game</Button>
     </div>
   );
 };

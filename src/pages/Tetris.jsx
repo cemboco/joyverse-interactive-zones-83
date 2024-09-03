@@ -26,6 +26,10 @@ const Tetris = () => {
   const [currentPiece, setCurrentPiece] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    const saved = localStorage.getItem('tetrisHighScore');
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   const spawnNewPiece = useCallback(() => {
     const tetrominos = Object.keys(TETROMINOS);
@@ -53,10 +57,17 @@ const Tetris = () => {
     } else {
       placePiece();
       const clearedLines = clearLines();
-      setScore(prevScore => prevScore + clearedLines * 100);
+      setScore(prevScore => {
+        const newScore = prevScore + clearedLines * 100;
+        if (newScore > highScore) {
+          setHighScore(newScore);
+          localStorage.setItem('tetrisHighScore', newScore.toString());
+        }
+        return newScore;
+      });
       spawnNewPiece();
     }
-  }, [currentPiece, spawnNewPiece]);
+  }, [currentPiece, spawnNewPiece, highScore]);
 
   const moveHorizontally = (direction) => {
     if (!currentPiece) return;
@@ -152,6 +163,14 @@ const Tetris = () => {
     spawnNewPiece();
   };
 
+  useEffect(() => {
+    if (gameOver) {
+      const games = JSON.parse(localStorage.getItem('tetrisGames') || '[]');
+      games.push({ score, date: new Date().toISOString() });
+      localStorage.setItem('tetrisGames', JSON.stringify(games));
+    }
+  }, [gameOver, score]);
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-400 to-purple-500 flex flex-col items-center justify-center">
       <Link to="/" className="absolute top-4 left-4">
@@ -197,6 +216,7 @@ const Tetris = () => {
         ))}
       </div>
       <div className="mt-4 text-white text-2xl">Score: {score}</div>
+      <div className="mt-2 text-white text-xl">High Score: {highScore}</div>
       {gameOver && (
         <div className="mt-4 text-white text-2xl">Game Over!</div>
       )}

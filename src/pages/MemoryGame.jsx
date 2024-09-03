@@ -11,6 +11,11 @@ const MemoryGame = () => {
   const [solved, setSolved] = useState([]);
   const [disabled, setDisabled] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [moves, setMoves] = useState(0);
+  const [bestScore, setBestScore] = useState(() => {
+    const saved = localStorage.getItem('memoryGameBestScore');
+    return saved ? parseInt(saved, 10) : Infinity;
+  });
 
   useEffect(() => {
     initializeCards();
@@ -22,12 +27,14 @@ const MemoryGame = () => {
       .sort(() => Math.random() - 0.5)
       .map((symbol, index) => ({ id: index, symbol, flipped: false }));
     setCards(deck);
+    setMoves(0);
   };
 
   const handleCardClick = (id) => {
     if (disabled) return;
     const newFlipped = [...flipped, id];
     setFlipped(newFlipped);
+    setMoves(moves + 1);
 
     if (newFlipped.length === 2) {
       setDisabled(true);
@@ -43,10 +50,13 @@ const MemoryGame = () => {
       setFlipped([]);
       setDisabled(false);
       
-      // Check if all pairs are solved
       if (newSolved.length === cards.length / 2) {
         setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
+        if (moves < bestScore) {
+          setBestScore(moves);
+          localStorage.setItem('memoryGameBestScore', moves.toString());
+        }
+        setTimeout(() => setShowConfetti(false), 5000);
       }
     } else {
       setTimeout(() => {
@@ -61,8 +71,17 @@ const MemoryGame = () => {
     setSolved([]);
     setDisabled(false);
     setShowConfetti(false);
+    setMoves(0);
     initializeCards();
   };
+
+  useEffect(() => {
+    if (solved.length === cards.length / 2) {
+      const games = JSON.parse(localStorage.getItem('memoryGames') || '[]');
+      games.push({ moves, date: new Date().toISOString() });
+      localStorage.setItem('memoryGames', JSON.stringify(games));
+    }
+  }, [solved, cards.length, moves]);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-green-400 to-blue-500 p-8">
@@ -88,7 +107,9 @@ const MemoryGame = () => {
           </Card>
         ))}
       </div>
-      <div className="text-center mt-8">
+      <div className="text-center mt-8 text-white">
+        <div className="text-2xl mb-2">Moves: {moves}</div>
+        <div className="text-xl mb-4">Best Score: {bestScore === Infinity ? 'N/A' : bestScore}</div>
         <Button onClick={resetGame}>Reset Game</Button>
       </div>
     </div>
