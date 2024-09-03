@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
 
-const GRID_SIZE = 20;
+const GRID_SIZE = 15;
 const CELL_SIZE = 20;
-const BORDER_THICKNESS = 10;
-const INITIAL_SNAKE = [{ x: 10, y: 10 }];
-const INITIAL_FOOD = { x: 15, y: 15 };
+const BORDER_THICKNESS = 5;
+const INITIAL_SNAKE = [{ x: 7, y: 7 }];
+const INITIAL_FOOD = { x: 11, y: 11 };
 const INITIAL_DIRECTION = 'RIGHT';
 
 const Tetris = () => {
@@ -17,21 +17,9 @@ const Tetris = () => {
     const saved = localStorage.getItem('tetrisHighScore');
     return saved ? parseInt(saved, 10) : 0;
   });
-  const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
+  const [boardSize, setBoardSize] = useState({ width: 300, height: 600 });
   const canvasRef = useRef(null);
   const requestRef = useRef(null);
-
-  useEffect(() => {
-    const updateBoardSize = () => {
-      const smallestDimension = Math.min(window.innerWidth, window.innerHeight) - 40;
-      const newSize = Math.floor(smallestDimension / GRID_SIZE) * GRID_SIZE;
-      setBoardSize({ width: newSize, height: newSize * 2 });
-    };
-
-    updateBoardSize();
-    window.addEventListener('resize', updateBoardSize);
-    return () => window.removeEventListener('resize', updateBoardSize);
-  }, []);
 
   const getRandomInt = (min, max) => {
     min = Math.ceil(min);
@@ -157,7 +145,7 @@ const Tetris = () => {
     }
 
     if (tetromino.current) {
-      if (++count.current > 60) {  // Changed from 35 to 60 to slow down the game
+      if (++count.current > 60) {
         tetromino.current.row++;
         count.current = 0;
 
