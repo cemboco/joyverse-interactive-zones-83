@@ -86,7 +86,7 @@ const Breakout = () => {
               ballY > b.y &&
               ballY < b.y + BRICK_HEIGHT
             ) {
-              setBallDY(-ballDY);
+              setBallDY(prevDY => -prevDY);
               b.status = 0;
               setScore(prevScore => prevScore + 1);
               if (score === BRICK_ROW_COUNT * BRICK_COLUMN_COUNT - 1) {
@@ -106,13 +106,13 @@ const Breakout = () => {
       collisionDetection();
 
       if (ballX + ballDX > canvas.width - BALL_RADIUS || ballX + ballDX < BALL_RADIUS) {
-        setBallDX(-ballDX);
+        setBallDX(prevDX => -prevDX);
       }
       if (ballY + ballDY < BALL_RADIUS) {
-        setBallDY(-ballDY);
+        setBallDY(prevDY => -prevDY);
       } else if (ballY + ballDY > canvas.height - BALL_RADIUS) {
         if (ballX > paddleX && ballX < paddleX + PADDLE_WIDTH) {
-          setBallDY(-ballDY);
+          setBallDY(prevDY => -prevDY);
         } else {
           setGameOver(true);
         }
@@ -134,7 +134,7 @@ const Breakout = () => {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     initializeBricks();
     setBallX(canvas.width / 2);
     setBallY(canvas.height - 30);
@@ -144,7 +144,7 @@ const Breakout = () => {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [ballDX, ballDY, bricks, gameOver, paddleX, score]);
 
