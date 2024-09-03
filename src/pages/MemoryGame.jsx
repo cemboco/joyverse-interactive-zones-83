@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
-import { HomeIcon } from 'lucide-react';
+import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
 import Confetti from 'react-confetti';
 
 const MemoryGame = () => {
@@ -92,6 +92,20 @@ const MemoryGame = () => {
     }
   }, [solved, cards.length, moves]);
 
+  const shareOnTwitter = () => {
+    const text = `I just scored ${moves} moves in the Memory Game! Try to beat me! #MemoryGameChallenge`;
+    const url = 'https://your-game-url.com'; // Replace with your actual game URL
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  };
+
+  const shareOnInstagram = () => {
+    // Instagram doesn't have a direct sharing API, so we'll copy the text to clipboard
+    const text = `I just scored ${moves} moves in the Memory Game! Try to beat me! #MemoryGameChallenge\n\nPlay at: https://your-game-url.com`;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Challenge text copied! You can now paste it into your Instagram story.');
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-green-400 to-blue-500 p-8">
       {showConfetti && <Confetti />}
@@ -121,7 +135,18 @@ const MemoryGame = () => {
       <div className="text-center mt-8 text-white">
         <div className="text-2xl mb-2">Moves: {moves}</div>
         <div className="text-xl mb-4">Best Score: {bestScore === Infinity ? 'N/A' : bestScore}</div>
-        <Button onClick={resetGame}>Reset Game</Button>
+        <div className="text-2xl font-bold mb-4">Try to beat me!</div>
+        <Button onClick={resetGame} className="mb-4">Reset Game</Button>
+        <div className="flex justify-center space-x-4">
+          <Button onClick={shareOnTwitter} className="bg-blue-400 hover:bg-blue-500">
+            <TwitterIcon className="h-5 w-5 mr-2" />
+            Share on X.com
+          </Button>
+          <Button onClick={shareOnInstagram} className="bg-pink-500 hover:bg-pink-600">
+            <InstagramIcon className="h-5 w-5 mr-2" />
+            Share on Instagram
+          </Button>
+        </div>
       </div>
     </div>
   );
