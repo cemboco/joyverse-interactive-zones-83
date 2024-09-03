@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
-import { HomeIcon } from 'lucide-react';
+import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
@@ -115,6 +115,19 @@ const Snake = () => {
     }
   }, [gameOver, score]);
 
+  const shareOnTwitter = () => {
+    const text = `I just scored ${score} in Snake Game! Try to beat me! #SnakeGameChallenge`;
+    const url = 'https://your-game-url.com'; // Replace with your actual game URL
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  };
+
+  const shareOnInstagram = () => {
+    const text = `I just scored ${score} in Snake Game! Try to beat me! #SnakeGameChallenge\n\nPlay at: https://your-game-url.com`;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Challenge text copied! You can now paste it into your Instagram story.');
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-400 to-purple-500 flex flex-col items-center justify-center">
       <Link to="/" className="absolute top-4 left-4">
@@ -157,12 +170,23 @@ const Snake = () => {
       </div>
       <div className="mt-4 text-white text-2xl">Score: {score}</div>
       <div className="mt-2 text-white text-xl">High Score: {highScore}</div>
+      <div className="text-2xl font-bold mb-4 text-white">Try to beat me!</div>
       {gameOver && (
         <div className="mt-4 text-white text-2xl">Game Over!</div>
       )}
       <Button onClick={resetGame} className="mt-4">
         {gameOver ? 'Play Again' : 'Reset Game'}
       </Button>
+      <div className="flex justify-center space-x-4 mt-4">
+        <Button onClick={shareOnTwitter} className="bg-blue-400 hover:bg-blue-500">
+          <TwitterIcon className="h-5 w-5 mr-2" />
+          Share on X.com
+        </Button>
+        <Button onClick={shareOnInstagram} className="bg-pink-500 hover:bg-pink-600">
+          <InstagramIcon className="h-5 w-5 mr-2" />
+          Share on Instagram
+        </Button>
+      </div>
     </div>
   );
 };
