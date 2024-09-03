@@ -3,12 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { HomeIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
 
-const GRID_SIZE = 15;
-const CELL_SIZE = 20;
+const GRID_WIDTH = 10;
+const GRID_HEIGHT = 16;
+const CELL_SIZE = 15;
 const BORDER_THICKNESS = 5;
-const INITIAL_SNAKE = [{ x: 7, y: 7 }];
-const INITIAL_FOOD = { x: 11, y: 11 };
-const INITIAL_DIRECTION = 'RIGHT';
 
 const Tetris = () => {
   const [gameOver, setGameOver] = useState(false);
@@ -17,7 +15,10 @@ const Tetris = () => {
     const saved = localStorage.getItem('tetrisHighScore');
     return saved ? parseInt(saved, 10) : 0;
   });
-  const [boardSize, setBoardSize] = useState({ width: 300, height: 600 });
+  const [boardSize, setBoardSize] = useState({ 
+    width: GRID_WIDTH * CELL_SIZE, 
+    height: GRID_HEIGHT * CELL_SIZE 
+  });
   const canvasRef = useRef(null);
   const requestRef = useRef(null);
 
@@ -58,9 +59,9 @@ const Tetris = () => {
   };
 
   const playfield = useRef([]);
-  for (let row = -2; row < 20; row++) {
+  for (let row = -2; row < GRID_HEIGHT; row++) {
     playfield.current[row] = [];
-    for (let col = 0; col < 10; col++) {
+    for (let col = 0; col < GRID_WIDTH; col++) {
       playfield.current[row][col] = 0;
     }
   }
@@ -143,8 +144,8 @@ const Tetris = () => {
     const context = canvasRef.current.getContext('2d');
     context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-    for (let row = 0; row < 20; row++) {
-      for (let col = 0; col < 10; col++) {
+    for (let row = 0; row < GRID_HEIGHT; row++) {
+      for (let col = 0; col < GRID_WIDTH; col++) {
         if (playfield.current[row][col]) {
           const name = playfield.current[row][col];
           context.fillStyle = colors[name];
@@ -154,7 +155,7 @@ const Tetris = () => {
     }
 
     if (tetromino.current) {
-      if (++count.current > 60) {
+      if (++count.current > 35) {
         tetromino.current.row++;
         count.current = 0;
 
@@ -240,8 +241,8 @@ const Tetris = () => {
   }, [gameOver, score, highScore]);
 
   const resetGame = useCallback(() => {
-    for (let row = -2; row < 20; row++) {
-      for (let col = 0; col < 10; col++) {
+    for (let row = -2; row < GRID_HEIGHT; row++) {
+      for (let col = 0; col < GRID_WIDTH; col++) {
         playfield.current[row][col] = 0;
       }
     }
