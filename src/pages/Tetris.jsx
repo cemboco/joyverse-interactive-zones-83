@@ -130,6 +130,15 @@ const Tetris = () => {
     tetromino.current = getNextTetromino();
   };
 
+  const dropTetromino = () => {
+    let row = tetromino.current.row;
+    while (isValidMove(tetromino.current.matrix, row + 1, tetromino.current.col)) {
+      row++;
+    }
+    tetromino.current.row = row;
+    placeTetromino();
+  };
+
   const loop = useCallback(() => {
     const context = canvasRef.current.getContext('2d');
     context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -179,6 +188,10 @@ const Tetris = () => {
     const handleKeyDown = (e) => {
       if (gameOver) return;
 
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+      }
+
       if (e.keyCode === 37 || e.keyCode === 39) {
         const col = e.keyCode === 37
           ? tetromino.current.col - 1
@@ -206,6 +219,10 @@ const Tetris = () => {
         }
 
         tetromino.current.row = row;
+      }
+
+      if (e.keyCode === 32) {
+        dropTetromino();
       }
     };
 
