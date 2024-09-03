@@ -19,9 +19,6 @@ const Index = () => {
         <Link to="/tetris">
           <Button className="w-48 text-lg">Tetris</Button>
         </Link>
-        <Link to="/breakout">
-          <Button className="w-48 text-lg">Breakout</Button>
-        </Link>
       </div>
     </div>
   );
